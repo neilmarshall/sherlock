@@ -22,10 +22,10 @@ public static partial class StoryMetadata
     {
         var slug = title;
 
-        // Strip common prefixes for shorter slugs
-        slug = slug.Replace("The Adventure of ", "", StringComparison.OrdinalIgnoreCase);
-        slug = slug.Replace("The ", "", StringComparison.OrdinalIgnoreCase);
-        slug = slug.Replace("A ", "", StringComparison.OrdinalIgnoreCase);
+        // Strip common prefixes for shorter slugs (anchored to start only)
+        slug = StripPrefix(slug, "The Adventure of ");
+        slug = StripPrefix(slug, "The ");
+        slug = StripPrefix(slug, "A ");
 
         slug = slug.ToLowerInvariant();
         slug = NonAlphanumericRegex().Replace(slug, "-");
@@ -33,6 +33,13 @@ public static partial class StoryMetadata
         slug = slug.Trim('-');
 
         return slug;
+    }
+
+    private static string StripPrefix(string value, string prefix)
+    {
+        return value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+            ? value[prefix.Length..]
+            : value;
     }
 
     [GeneratedRegex("[^a-z0-9]+")]
