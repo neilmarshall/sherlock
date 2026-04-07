@@ -45,7 +45,7 @@ The tool is idempotent — safe to re-run at any time.
 
 ### 3. Use the app
 
-Open the frontend URL shown in the Aspire dashboard (or the Vite dev server URL, typically `http://localhost:5173`). Click **"Draw a Case"** to fetch a random story.
+Open the frontend URL shown in the Aspire dashboard. Aspire assigns a dynamic port to the Vite dev server on each run, so check the dashboard for the current URL. Click **"Draw a Case"** to fetch a random story.
 
 ## Project structure
 

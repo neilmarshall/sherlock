@@ -23,7 +23,7 @@ cd src/frontend && npm run lint
 cd src/frontend && npm run build
 ```
 
-The Aspire dashboard URL is printed at startup — use it to find service endpoints. The frontend Vite dev server is typically at `http://localhost:5173`.
+The Aspire dashboard URL is printed at startup — use it to find service endpoints. Aspire assigns a dynamic port to the Vite dev server on each run.
 
 ## Architecture
 
