@@ -7,11 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Prerequisites:** .NET 10 SDK, Node.js 20+, Docker (for Azurite emulator).
 
 ```bash
-# Start the full stack (Azurite + API + Vite frontend) via Aspire
+# Start the full stack (Azurite + Migration + API + Vite frontend) via Aspire
+# Migration seeds story data automatically at startup
 dotnet run --project src/SherlockHolmes.AppHost
-
-# Seed story data into local Azurite (run once, idempotent)
-dotnet run --project src/SherlockHolmes.Migration
 
 # Build .NET projects
 dotnet build src/SherlockHolmes.sln
@@ -34,7 +32,7 @@ This is a .NET Aspire-orchestrated app with three components:
   - `GET /api/stories/random` — returns a random story (metadata from Table Storage + body from Blob Storage)
   - `GET /api/stories/{id}/metadata` — returns metadata only
   - `StoryService` caches row keys in a static list (process-lifetime cache with double-check locking)
-- **Migration** (`src/SherlockHolmes.Migration`): Console app that parses 56 `.txt` files from `data/stories/`, uploads bodies to Blob Storage, and writes metadata to Table Storage. Connects to Azurite by default.
+- **Migration** (`src/SherlockHolmes.Migration`): Console app that parses 56 `.txt` files from `data/stories/`, uploads bodies to Blob Storage, and writes metadata to Table Storage. Runs automatically as part of Aspire startup (API waits for it to complete). Can also run standalone with `ConnectionStrings__tables` and `ConnectionStrings__blobs` env vars.
 - **Frontend** (`src/frontend`): React 19 + Vite + TypeScript + Tailwind CSS v4 + shadcn/ui components. Victorian theme with Playfair Display / Lora / Cinzel fonts.
 
 ## Key Patterns

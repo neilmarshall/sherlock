@@ -1,12 +1,17 @@
 using System.Text;
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using SherlockHolmes.Migration;
 
-var connectionString = args.Length > 0 ? args[0] : "UseDevelopmentStorage=true";
-var storiesPath = args.Length > 1
-    ? args[1]
-    : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "data", "stories"));
+var builder = Host.CreateApplicationBuilder(args);
+builder.AddAzureTableServiceClient("tables");
+builder.AddAzureBlobServiceClient("blobs");
+
+var host = builder.Build();
+
+var storiesPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "data", "stories"));
 
 if (!Directory.Exists(storiesPath))
 {
@@ -14,14 +19,13 @@ if (!Directory.Exists(storiesPath))
     return 1;
 }
 
-Console.WriteLine($"Connection: {connectionString}");
 Console.WriteLine($"Stories path: {storiesPath}");
 
-var tableServiceClient = new TableServiceClient(connectionString);
+var tableServiceClient = host.Services.GetRequiredService<TableServiceClient>();
 var tableClient = tableServiceClient.GetTableClient("stories");
 await tableClient.CreateIfNotExistsAsync();
 
-var blobServiceClient = new BlobServiceClient(connectionString);
+var blobServiceClient = host.Services.GetRequiredService<BlobServiceClient>();
 var blobContainerClient = blobServiceClient.GetBlobContainerClient("stories");
 await blobContainerClient.CreateIfNotExistsAsync();
 

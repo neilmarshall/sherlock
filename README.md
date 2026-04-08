@@ -20,30 +20,13 @@ dotnet run --project src/SherlockHolmes.AppHost
 
 This starts:
 - **Azurite** (Azure Storage emulator) in a Docker container
-- **API** (ASP.NET Core Minimal API) connected to Azurite
+- **Migration** — automatically seeds the 56 story text files from `data/stories/` into Azurite (runs once at startup, idempotent)
+- **API** (ASP.NET Core Minimal API) connected to Azurite — waits for migration to complete
 - **Frontend** (Vite dev server) proxying API requests to the backend
 
 The Aspire dashboard URL will be printed to the console — open it to see all resources and their endpoints.
 
-### 2. Seed the story data
-
-The API won't return stories until the migration tool has been run. In a separate terminal:
-
-```bash
-dotnet run --project src/SherlockHolmes.Migration
-```
-
-This parses the 56 story text files from `data/stories/`, uploads each story body to Blob Storage, and writes metadata to Table Storage in the local Azurite emulator.
-
-By default the migration tool connects to Azurite (`UseDevelopmentStorage=true`) and looks for stories at `data/stories/` relative to the project. You can override both via command-line args:
-
-```bash
-dotnet run --project src/SherlockHolmes.Migration -- "<connection-string>" "<stories-path>"
-```
-
-The tool is idempotent — safe to re-run at any time.
-
-### 3. Use the app
+### 2. Use the app
 
 Open the frontend URL shown in the Aspire dashboard. Aspire assigns a dynamic port to the Vite dev server on each run, so check the dashboard for the current URL. Click **"Draw a Case"** to fetch a random story.
 
@@ -51,8 +34,20 @@ Open the frontend URL shown in the Aspire dashboard. Aspire assigns a dynamic po
 
 | Project | Purpose |
 |---------|---------|
-| `src/SherlockHolmes.AppHost` | Aspire orchestrator — wires Azurite, API, and frontend |
+| `src/SherlockHolmes.AppHost` | Aspire orchestrator — wires Azurite, Migration, API, and frontend |
 | `src/SherlockHolmes.Api` | ASP.NET Core Minimal API (`/api/stories/random`, `/api/stories/{id}/metadata`) |
-| `src/SherlockHolmes.Migration` | Console app to seed story data into Azure Storage |
+| `src/SherlockHolmes.Migration` | Console app to seed story data into Azure Storage (runs automatically via Aspire, or standalone — see below) |
 | `src/frontend` | React + Vite + TypeScript + Tailwind CSS + shadcn/ui |
 | `data/stories` | 56 canonical Sherlock Holmes short stories (plain text) |
+
+## Running the migration standalone
+
+The migration runs automatically as part of Aspire startup. To run it standalone against a different storage account (e.g. production), pass connection strings as environment variables:
+
+```bash
+ConnectionStrings__tables="<connection-string>" \
+ConnectionStrings__blobs="<connection-string>" \
+dotnet run --project src/SherlockHolmes.Migration
+```
+
+The tool is idempotent — safe to re-run at any time.

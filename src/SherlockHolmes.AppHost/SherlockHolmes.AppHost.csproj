@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SherlockHolmes.Api\SherlockHolmes.Api.csproj" />
+    <ProjectReference Include="..\SherlockHolmes.Migration\SherlockHolmes.Migration.csproj" />
   </ItemGroup>
 
   <ItemGroup>

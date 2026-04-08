@@ -4,10 +4,15 @@ var storage = builder.AddAzureStorage("storage").RunAsEmulator();
 var tables = storage.AddTables("tables");
 var blobs = storage.AddBlobs("blobs");
 
+var migration = builder.AddProject<Projects.SherlockHolmes_Migration>("migration")
+    .WithReference(tables)
+    .WithReference(blobs)
+    .WaitFor(tables);
+
 var api = builder.AddProject<Projects.SherlockHolmes_Api>("api")
     .WithReference(tables)
     .WithReference(blobs)
-    .WaitFor(tables)
+    .WaitFor(migration)
     .WithHttpHealthCheck("/health")
     .WithExternalHttpEndpoints();
 
