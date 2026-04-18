@@ -41,6 +41,25 @@ public class StoryService : IStoryService
             body);
     }
 
+    public async Task<string?> GetStoryBodyAsync(string id)
+    {
+        try
+        {
+            var tableClient = _tableServiceClient.GetTableClient("stories");
+            var entity = (await tableClient.GetEntityAsync<StoryEntity>(
+                "story", id, select: ["BlobName"])).Value;
+
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient("stories");
+            var blobClient = blobContainerClient.GetBlobClient(entity.BlobName);
+            var blobResponse = await blobClient.DownloadContentAsync();
+            return blobResponse.Value.Content.ToString();
+        }
+        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            return null;
+        }
+    }
+
     public async Task<StoryMetadataResponse?> GetStoryMetadataAsync(string id)
     {
         try

@@ -4,7 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build & Run
 
-**Prerequisites:** .NET 10 SDK, Node.js 20+, Docker (for Azurite emulator).
+**Prerequisites:** .NET 10 SDK, Node.js 20+, Docker (for Azurite emulator), an Azure AI Foundry chat-completion deployment (required for the chat assistant).
+
+**Required user secrets** (set once on the AppHost project; the API will fail to start without them):
+
+```bash
+cd src/SherlockHolmes.AppHost
+dotnet user-secrets set "Parameters:foundry-endpoint"   "https://<your-foundry>.openai.azure.com/"
+dotnet user-secrets set "Parameters:foundry-api-key"    "<key>"
+dotnet user-secrets set "Parameters:foundry-deployment" "<deployment-name>"
+```
 
 ```bash
 # Start the full stack (Azurite + Migration + API + Vite frontend) via Aspire
@@ -28,9 +37,10 @@ The Aspire dashboard URL is printed at startup — use it to find service endpoi
 This is a .NET Aspire-orchestrated app with three components:
 
 - **AppHost** (`src/SherlockHolmes.AppHost`): Aspire orchestrator. Wires up Azurite (Azure Storage emulator running in Docker), the API, and the Vite frontend. All local development uses Azurite — no real Azure resources needed.
-- **API** (`src/SherlockHolmes.Api`): ASP.NET Core Minimal API. Two endpoints:
+- **API** (`src/SherlockHolmes.Api`): ASP.NET Core Minimal API. Endpoints:
   - `GET /api/stories/random` — returns a random story (metadata from Table Storage + body from Blob Storage)
   - `GET /api/stories/{id}/metadata` — returns metadata only
+  - `POST /api/stories/{id}/chat` — streams a chat reply (text/plain) about the story; body `{ history: ChatTurn[], message: string }`. Backed by `ChatService` over Semantic Kernel + Azure OpenAI chat completion.
   - `StoryService` caches row keys in a static list (process-lifetime cache with double-check locking)
 - **Migration** (`src/SherlockHolmes.Migration`): Console app that parses 56 `.txt` files from `data/stories/`, uploads bodies to Blob Storage, and writes metadata to Table Storage. Runs automatically as part of Aspire startup (API waits for it to complete). Can also run standalone with `ConnectionStrings__tables` and `ConnectionStrings__blobs` env vars.
 - **Frontend** (`src/frontend`): React 19 + Vite + TypeScript + Tailwind CSS v4 + shadcn/ui components. Victorian theme with Playfair Display / Lora / Cinzel fonts.

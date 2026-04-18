@@ -6,8 +6,10 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Info } from 'lucide-react';
 import type { Story } from '@/types/story';
+import { ChatTab } from '@/components/ChatTab';
 
 interface MetadataPanelProps {
   story: Story;
@@ -39,15 +41,26 @@ export function MetadataPanel({ story, open, onOpenChange }: MetadataPanelProps)
         <SheetHeader>
           <SheetTitle className="font-['Cinzel',serif] text-primary">Case Details</SheetTitle>
         </SheetHeader>
-        <dl className="mt-6">
-          <MetadataField label="Title" value={story.title} />
-          <Separator className="bg-border" />
-          <MetadataField label="Collection" value={story.collection} />
-          <Separator className="bg-border" />
-          <MetadataField label="Year Published" value={story.yearPublished} />
-          <Separator className="bg-border" />
-          <MetadataField label="Word Count" value={story.wordCount.toLocaleString()} />
-        </dl>
+        <Tabs defaultValue="info" className="mt-4 px-4">
+          <TabsList className="w-full">
+            <TabsTrigger value="info">Info</TabsTrigger>
+            <TabsTrigger value="chat">Chat</TabsTrigger>
+          </TabsList>
+          <TabsContent value="info">
+            <dl className="mt-4">
+              <MetadataField label="Title" value={story.title} />
+              <Separator className="bg-border" />
+              <MetadataField label="Collection" value={story.collection} />
+              <Separator className="bg-border" />
+              <MetadataField label="Year Published" value={story.yearPublished} />
+              <Separator className="bg-border" />
+              <MetadataField label="Word Count" value={story.wordCount.toLocaleString()} />
+            </dl>
+          </TabsContent>
+          <TabsContent value="chat" className="mt-4">
+            <ChatTab key={story.id} storyId={story.id} />
+          </TabsContent>
+        </Tabs>
       </SheetContent>
     </Sheet>
   );
