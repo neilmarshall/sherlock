@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { AlertCircle, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -8,10 +9,11 @@ import { cn } from '@/lib/utils';
 
 interface ChatTabProps {
   storyId: string;
+  messages: ChatMessage[];
+  onMessagesChange: Dispatch<SetStateAction<ChatMessage[]>>;
 }
 
-export function ChatTab({ storyId }: ChatTabProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+export function ChatTab({ storyId, messages, onMessagesChange }: ChatTabProps) {
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export function ChatTab({ storyId }: ChatTabProps) {
     setError(null);
     setInput('');
     const history = messages;
-    setMessages([
+    onMessagesChange([
       ...history,
       { role: 'user', content: message },
       { role: 'assistant', content: '' },
@@ -47,7 +49,7 @@ export function ChatTab({ storyId }: ChatTabProps) {
         history,
         message,
         (chunk) => {
-          setMessages((prev) => {
+          onMessagesChange((prev) => {
             const next = prev.slice();
             const last = next[next.length - 1];
             if (last && last.role === 'assistant') {
@@ -61,7 +63,7 @@ export function ChatTab({ storyId }: ChatTabProps) {
     } catch (err) {
       if ((err as { name?: string }).name === 'AbortError') return;
       setError(err instanceof Error ? err.message : 'Chat request failed.');
-      setMessages((prev) => {
+      onMessagesChange((prev) => {
         const last = prev[prev.length - 1];
         if (last && last.role === 'assistant' && last.content === '') {
           return prev.slice(0, -1);
@@ -82,8 +84,8 @@ export function ChatTab({ storyId }: ChatTabProps) {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)]">
-      <ScrollArea className="flex-1 pr-2">
+    <div className="flex flex-col flex-1 min-h-0">
+      <ScrollArea className="flex-1 min-h-0 pr-2">
         {messages.length === 0 ? (
           <p className="text-sm text-muted-foreground italic px-1 py-4">
             Ask about the plot, characters, or clues in this case.

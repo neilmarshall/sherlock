@@ -8,13 +8,21 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Info } from 'lucide-react';
+import type { Dispatch, SetStateAction } from 'react';
 import type { Story } from '@/types/story';
+import type { ChatMessage } from '@/types/chat';
 import { ChatTab } from '@/components/ChatTab';
+
+type PanelTab = 'info' | 'chat';
 
 interface MetadataPanelProps {
   story: Story;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  chatMessages: ChatMessage[];
+  onChatMessagesChange: Dispatch<SetStateAction<ChatMessage[]>>;
+  activeTab: PanelTab;
+  onActiveTabChange: (tab: PanelTab) => void;
 }
 
 function MetadataField({ label, value }: { label: string; value: string | number }) {
@@ -26,7 +34,15 @@ function MetadataField({ label, value }: { label: string; value: string | number
   );
 }
 
-export function MetadataPanel({ story, open, onOpenChange }: MetadataPanelProps) {
+export function MetadataPanel({
+  story,
+  open,
+  onOpenChange,
+  chatMessages,
+  onChatMessagesChange,
+  activeTab,
+  onActiveTabChange,
+}: MetadataPanelProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
@@ -41,7 +57,11 @@ export function MetadataPanel({ story, open, onOpenChange }: MetadataPanelProps)
         <SheetHeader>
           <SheetTitle className="font-['Cinzel',serif] text-primary">Case Details</SheetTitle>
         </SheetHeader>
-        <Tabs defaultValue="info" className="mt-4 px-4">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => onActiveTabChange(value as PanelTab)}
+          className="mt-4 px-4 flex-1 min-h-0"
+        >
           <TabsList className="w-full">
             <TabsTrigger value="info">Info</TabsTrigger>
             <TabsTrigger value="chat">Chat</TabsTrigger>
@@ -57,8 +77,17 @@ export function MetadataPanel({ story, open, onOpenChange }: MetadataPanelProps)
               <MetadataField label="Word Count" value={story.wordCount.toLocaleString()} />
             </dl>
           </TabsContent>
-          <TabsContent value="chat" className="mt-4">
-            <ChatTab key={story.id} storyId={story.id} />
+          <TabsContent
+            value="chat"
+            forceMount
+            className="mt-4 flex flex-col min-h-0 data-[state=inactive]:hidden"
+          >
+            <ChatTab
+              key={story.id}
+              storyId={story.id}
+              messages={chatMessages}
+              onMessagesChange={onChatMessagesChange}
+            />
           </TabsContent>
         </Tabs>
       </SheetContent>

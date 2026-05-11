@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Story } from '@/types/story';
+import type { ChatMessage } from '@/types/chat';
 import { fetchRandomStory } from '@/lib/api';
 import { LandingHero } from '@/components/LandingHero';
 import { StoryView } from '@/components/StoryView';
@@ -11,6 +12,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [panelTab, setPanelTab] = useState<'info' | 'chat'>('info');
 
   const handleDraw = async () => {
     setLoading(true);
@@ -18,6 +21,8 @@ function App() {
     try {
       const data = await fetchRandomStory();
       setStory(data);
+      setChatMessages([]);
+      setPanelTab('info');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch story');
     } finally {
@@ -47,7 +52,15 @@ function App() {
           </h1>
           <div className="flex items-center gap-2 ml-auto">
             <DrawCaseButton onClick={handleDraw} loading={loading} />
-            <MetadataPanel story={story} open={panelOpen} onOpenChange={setPanelOpen} />
+            <MetadataPanel
+              story={story}
+              open={panelOpen}
+              onOpenChange={setPanelOpen}
+              chatMessages={chatMessages}
+              onChatMessagesChange={setChatMessages}
+              activeTab={panelTab}
+              onActiveTabChange={setPanelTab}
+            />
           </div>
         </div>
       </header>
