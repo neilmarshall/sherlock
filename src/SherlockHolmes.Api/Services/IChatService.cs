@@ -16,3 +16,16 @@ public class StoryNotFoundException : Exception
     public StoryNotFoundException(string storyId)
         : base($"Story '{storyId}' not found.") { }
 }
+
+public class ChatException : Exception
+{
+    public int StatusCode { get; }
+    public string UserMessage { get; }
+
+    public ChatException(int statusCode, string userMessage, Exception? inner = null)
+        : base(userMessage, inner)
+    {
+        StatusCode = statusCode;
+        UserMessage = userMessage;
+    }
+}

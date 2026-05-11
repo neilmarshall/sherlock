@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Send } from 'lucide-react';
+import { AlertCircle, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { streamChatReply } from '@/lib/api';
@@ -60,8 +60,14 @@ export function ChatTab({ storyId }: ChatTabProps) {
       );
     } catch (err) {
       if ((err as { name?: string }).name === 'AbortError') return;
-      setError(err instanceof Error ? err.message : 'Chat request failed');
-      setMessages((prev) => prev.slice(0, -1));
+      setError(err instanceof Error ? err.message : 'Chat request failed.');
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last && last.role === 'assistant' && last.content === '') {
+          return prev.slice(0, -1);
+        }
+        return prev;
+      });
     } finally {
       setStreaming(false);
       abortRef.current = null;
@@ -105,7 +111,13 @@ export function ChatTab({ storyId }: ChatTabProps) {
       </ScrollArea>
 
       {error && (
-        <p className="text-xs text-destructive px-1 py-1">{error}</p>
+        <div
+          role="alert"
+          className="mt-2 flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+        >
+          <AlertCircle className="size-4 mt-0.5 shrink-0" aria-hidden />
+          <p className="leading-snug">{error}</p>
+        </div>
       )}
 
       <form

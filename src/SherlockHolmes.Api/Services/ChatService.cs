@@ -1,3 +1,4 @@
+using System.ClientModel;
 using System.Runtime.CompilerServices;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -42,11 +43,53 @@ public class ChatService : IChatService
         chatHistory.AddUserMessage(userMessage);
 
         var chat = _kernel.GetRequiredService<IChatCompletionService>();
-        await foreach (var chunk in chat.GetStreamingChatMessageContentsAsync(
-            chatHistory, kernel: _kernel, cancellationToken: cancellationToken))
+        var enumerator = chat.GetStreamingChatMessageContentsAsync(
+            chatHistory, kernel: _kernel, cancellationToken: cancellationToken).GetAsyncEnumerator(cancellationToken);
+
+        try
         {
-            if (!string.IsNullOrEmpty(chunk.Content))
-                yield return chunk.Content;
+            while (true)
+            {
+                bool hasNext;
+                try
+                {
+                    hasNext = await enumerator.MoveNextAsync();
+                }
+                catch (ClientResultException ex) when (IsContentFilter(ex))
+                {
+                    throw new ChatException(
+                        400,
+                        "That request was blocked by content safety filters. Please rephrase and try again.",
+                        ex);
+                }
+                catch (ClientResultException ex)
+                {
+                    throw new ChatException(
+                        502,
+                        "The chat service rejected the request. Please try again in a moment.",
+                        ex);
+                }
+                catch (Exception ex) when (ex.GetType().Name == "TimeoutRejectedException")
+                {
+                    throw new ChatException(
+                        504,
+                        "The reply took too long to generate. Please try again, perhaps with a shorter question.",
+                        ex);
+                }
+
+                if (!hasNext) break;
+                var chunk = enumerator.Current;
+                if (!string.IsNullOrEmpty(chunk.Content))
+                    yield return chunk.Content;
+            }
+        }
+        finally
+        {
+            await enumerator.DisposeAsync();
         }
     }
+
+    private static bool IsContentFilter(ClientResultException ex)
+        => ex.Status == 400
+           && ex.Message.Contains("content_filter", StringComparison.OrdinalIgnoreCase);
 }

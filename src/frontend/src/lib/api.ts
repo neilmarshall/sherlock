@@ -20,7 +20,17 @@ export async function streamChatReply(
     body: JSON.stringify({ history, message }),
     signal,
   });
-  if (!res.ok || !res.body) throw new Error(`Chat failed: ${res.status}`);
+  if (!res.ok) {
+    let message = `Chat failed (${res.status}).`;
+    try {
+      const text = (await res.text()).trim();
+      if (text) message = text;
+    } catch {
+      /* fall back to status-code message */
+    }
+    throw new Error(message);
+  }
+  if (!res.body) throw new Error('Chat response had no body.');
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder();

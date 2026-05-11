@@ -80,25 +80,50 @@ app.MapPost("/api/stories/{id}/chat", async (
     ChatRequest request,
     IChatService chatService,
     HttpResponse response,
+    ILogger<Program> logger,
     CancellationToken cancellationToken) =>
 {
-    response.ContentType = "text/plain; charset=utf-8";
+    static async Task WriteErrorAsync(HttpResponse response, int statusCode, string message)
+    {
+        if (response.HasStarted) return;
+        response.StatusCode = statusCode;
+        response.ContentType = "text/plain; charset=utf-8";
+        await response.WriteAsync(message);
+    }
 
     try
     {
+        var headersWritten = false;
         await foreach (var chunk in chatService.StreamReplyAsync(
             id, request.History, request.Message, cancellationToken))
         {
+            if (!headersWritten)
+            {
+                response.ContentType = "text/plain; charset=utf-8";
+                headersWritten = true;
+            }
             await response.WriteAsync(chunk, cancellationToken);
             await response.Body.FlushAsync(cancellationToken);
         }
     }
     catch (StoryNotFoundException)
     {
-        if (!response.HasStarted)
-        {
-            response.StatusCode = StatusCodes.Status404NotFound;
-        }
+        await WriteErrorAsync(response, StatusCodes.Status404NotFound,
+            "We couldn't find this case in the archive. Try drawing another.");
+    }
+    catch (ChatException ex)
+    {
+        await WriteErrorAsync(response, ex.StatusCode, ex.UserMessage);
+    }
+    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+    {
+        // Client disconnected — nothing to do.
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Unhandled error in chat endpoint for story {StoryId}", id);
+        await WriteErrorAsync(response, StatusCodes.Status500InternalServerError,
+            "Something went wrong while drafting a reply. Please try again.");
     }
 });
 
