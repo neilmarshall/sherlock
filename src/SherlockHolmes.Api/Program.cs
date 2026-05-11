@@ -1,3 +1,6 @@
+using System.ClientModel;
+using System.ClientModel.Primitives;
+using Azure.AI.OpenAI;
 using Microsoft.SemanticKernel;
 using SherlockHolmes.Api.Models;
 using SherlockHolmes.Api.Services;
@@ -21,7 +24,30 @@ var apiKey = ai["ApiKey"]
 var deployment = ai["DeploymentName"]
     ?? throw new InvalidOperationException("Configuration 'AzureOpenAI:DeploymentName' is missing.");
 
-builder.Services.AddAzureOpenAIChatCompletion(deployment, endpoint, apiKey);
+// Dedicated HttpClient for Azure OpenAI: streaming completions can run longer than the
+// default 10s/30s standard resilience timeouts, so we opt out and apply 30s/90s instead.
+#pragma warning disable EXTEXP0001 // RemoveAllResilienceHandlers is experimental
+builder.Services.AddHttpClient("azure-openai")
+    .RemoveAllResilienceHandlers()
+    .AddStandardResilienceHandler(options =>
+    {
+        options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(30);
+        options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(90);
+        options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(90);
+    });
+#pragma warning restore EXTEXP0001
+
+builder.Services.AddSingleton(sp =>
+{
+    var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient("azure-openai");
+    var options = new AzureOpenAIClientOptions
+    {
+        Transport = new HttpClientPipelineTransport(httpClient),
+    };
+    return new AzureOpenAIClient(new Uri(endpoint), new ApiKeyCredential(apiKey), options);
+});
+
+builder.Services.AddAzureOpenAIChatCompletion(deployment);
 builder.Services.AddKernel();
 builder.Services.AddSingleton<IChatService, ChatService>();
 
