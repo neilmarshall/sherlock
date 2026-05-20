@@ -1,0 +1,35 @@
+# .NET build output
+**/bin/
+**/obj/
+
+# Frontend build output and deps
+**/node_modules/
+**/dist/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE / OS noise
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+.DS_Store
+Thumbs.db
+
+# Local secrets
+.env
+.env.*
+
+# Docs (not needed in the image)
+**/*.md
+LICENSE
+
+# Not part of the deployed app
+src/SherlockHolmes.AppHost/
+src/SherlockHolmes.Migration/
+data/
+aspire.config.json

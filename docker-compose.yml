@@ -1,0 +1,17 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: src/SherlockHolmes.Api/Dockerfile
+    image: sherlock-api:latest
+    container_name: sherlock-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5001:8080"
+    env_file:
+      - /etc/sherlock/.env
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
