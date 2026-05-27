@@ -1,6 +1,9 @@
 using System.ClientModel;
 using System.ClientModel.Primitives;
+using System.Threading.RateLimiting;
 using Azure.AI.OpenAI;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.SemanticKernel;
 using SherlockHolmes.Api.Models;
 using SherlockHolmes.Api.Services;
@@ -51,12 +54,51 @@ builder.Services.AddAzureOpenAIChatCompletion(deployment);
 builder.Services.AddKernel();
 builder.Services.AddSingleton<IChatService, ChatService>();
 
+// Behind nginx: trust X-Forwarded-* so the rate limiter (and logs) see the real client IP.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+// Per-IP sliding window on the chat endpoint to cap Azure OpenAI spend from abuse.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (ctx, ct) =>
+    {
+        if (ctx.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            ctx.HttpContext.Response.Headers.RetryAfter =
+                ((int)retryAfter.TotalSeconds).ToString();
+        }
+        ctx.HttpContext.Response.ContentType = "text/plain; charset=utf-8";
+        await ctx.HttpContext.Response.WriteAsync(
+            "You've hit the chat rate limit. Please try again in a little while.", ct);
+    };
+
+    options.AddPolicy("chat", httpContext =>
+    {
+        var key = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetSlidingWindowLimiter(key, _ => new SlidingWindowRateLimiterOptions
+        {
+            PermitLimit = 20,
+            Window = TimeSpan.FromHours(1),
+            SegmentsPerWindow = 6,
+            QueueLimit = 0,
+        });
+    });
+});
+
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.UseExceptionHandler();
+app.UseRateLimiter();
 
 if (app.Environment.IsDevelopment())
 {
@@ -137,7 +179,7 @@ app.MapPost("/api/stories/{id}/chat", async (
         await WriteErrorAsync(response, StatusCodes.Status500InternalServerError,
             "Something went wrong while drafting a reply. Please try again.");
     }
-});
+}).RequireRateLimiting("chat");
 
 app.MapDefaultEndpoints();
 
