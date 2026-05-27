@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import type { Story } from '@/types/story';
 import type { ChatMessage } from '@/types/chat';
-import { fetchRandomStory } from '@/lib/api';
+import { fetchRandomStory, fetchStory } from '@/lib/api';
 import { LandingHero } from '@/components/LandingHero';
 import { StoryView } from '@/components/StoryView';
 import { DrawCaseButton } from '@/components/DrawCaseButton';
+import { StoryPicker } from '@/components/StoryPicker';
 import { MetadataPanel } from '@/components/MetadataPanel';
 
 function App() {
@@ -15,11 +16,11 @@ function App() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [panelTab, setPanelTab] = useState<'info' | 'chat'>('info');
 
-  const handleDraw = async () => {
+  const loadStory = async (fetcher: () => Promise<Story>) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchRandomStory();
+      const data = await fetcher();
       setStory(data);
       setChatMessages([]);
       setPanelTab('info');
@@ -29,6 +30,9 @@ function App() {
       setLoading(false);
     }
   };
+
+  const handleDraw = () => loadStory(fetchRandomStory);
+  const handlePick = (id: string) => loadStory(() => fetchStory(id));
 
   if (!story) {
     return (
@@ -52,6 +56,7 @@ function App() {
           </h1>
           <div className="flex items-center gap-2 ml-auto">
             <DrawCaseButton onClick={handleDraw} loading={loading} />
+            <StoryPicker onSelect={handlePick} disabled={loading} />
             <MetadataPanel
               story={story}
               open={panelOpen}

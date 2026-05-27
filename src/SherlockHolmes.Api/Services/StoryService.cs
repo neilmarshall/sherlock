@@ -9,7 +9,7 @@ public class StoryService : IStoryService
     private readonly TableServiceClient _tableServiceClient;
     private readonly BlobServiceClient _blobServiceClient;
 
-    private static List<string>? _cachedRowKeys;
+    private static List<StoryMetadataResponse>? _cachedMetadata;
     private static readonly SemaphoreSlim _lock = new(1, 1);
 
     public StoryService(TableServiceClient tableServiceClient, BlobServiceClient blobServiceClient)
@@ -20,25 +20,68 @@ public class StoryService : IStoryService
 
     public async Task<StoryResponse?> GetRandomStoryAsync()
     {
-        var keys = await GetRowKeysAsync();
-        if (keys.Count == 0) return null;
+        var metadata = await GetAllStoriesMetadataAsync();
+        if (metadata.Count == 0) return null;
 
-        var randomKey = keys[Random.Shared.Next(keys.Count)];
-        var tableClient = _tableServiceClient.GetTableClient("stories");
-        var entity = (await tableClient.GetEntityAsync<StoryEntity>("story", randomKey)).Value;
+        var randomId = metadata[Random.Shared.Next(metadata.Count)].Id;
+        return await GetStoryAsync(randomId);
+    }
 
-        var blobContainerClient = _blobServiceClient.GetBlobContainerClient("stories");
-        var blobClient = blobContainerClient.GetBlobClient(entity.BlobName);
-        var blobResponse = await blobClient.DownloadContentAsync();
-        var body = blobResponse.Value.Content.ToString();
+    public async Task<StoryResponse?> GetStoryAsync(string id)
+    {
+        try
+        {
+            var tableClient = _tableServiceClient.GetTableClient("stories");
+            var entity = (await tableClient.GetEntityAsync<StoryEntity>("story", id)).Value;
 
-        return new StoryResponse(
-            entity.RowKey,
-            entity.Title,
-            entity.Collection,
-            entity.YearPublished,
-            entity.WordCount,
-            body);
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient("stories");
+            var blobClient = blobContainerClient.GetBlobClient(entity.BlobName);
+            var blobResponse = await blobClient.DownloadContentAsync();
+            var body = blobResponse.Value.Content.ToString();
+
+            return new StoryResponse(
+                entity.RowKey,
+                entity.Title,
+                entity.Collection,
+                entity.YearPublished,
+                entity.WordCount,
+                body);
+        }
+        catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+        {
+            return null;
+        }
+    }
+
+    public async Task<IReadOnlyList<StoryMetadataResponse>> GetAllStoriesMetadataAsync()
+    {
+        if (_cachedMetadata is not null) return _cachedMetadata;
+
+        await _lock.WaitAsync();
+        try
+        {
+            if (_cachedMetadata is not null) return _cachedMetadata;
+
+            var tableClient = _tableServiceClient.GetTableClient("stories");
+            var list = new List<StoryMetadataResponse>();
+            await foreach (var entity in tableClient.QueryAsync<StoryEntity>(
+                filter: "PartitionKey eq 'story'",
+                select: ["RowKey", "Title", "Collection", "YearPublished", "WordCount"]))
+            {
+                list.Add(new StoryMetadataResponse(
+                    entity.RowKey,
+                    entity.Title,
+                    entity.Collection,
+                    entity.YearPublished,
+                    entity.WordCount));
+            }
+            _cachedMetadata = list;
+            return list;
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public async Task<string?> GetStoryBodyAsync(string id)
@@ -79,32 +122,6 @@ public class StoryService : IStoryService
         catch (Azure.RequestFailedException ex) when (ex.Status == 404)
         {
             return null;
-        }
-    }
-
-    private async Task<List<string>> GetRowKeysAsync()
-    {
-        if (_cachedRowKeys is not null) return _cachedRowKeys;
-
-        await _lock.WaitAsync();
-        try
-        {
-            if (_cachedRowKeys is not null) return _cachedRowKeys;
-
-            var tableClient = _tableServiceClient.GetTableClient("stories");
-            var keys = new List<string>();
-            await foreach (var entity in tableClient.QueryAsync<StoryEntity>(
-                filter: "PartitionKey eq 'story'",
-                select: ["RowKey"]))
-            {
-                keys.Add(entity.RowKey);
-            }
-            _cachedRowKeys = keys;
-            return keys;
-        }
-        finally
-        {
-            _lock.Release();
         }
     }
 }

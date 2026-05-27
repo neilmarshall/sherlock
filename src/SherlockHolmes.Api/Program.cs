@@ -63,10 +63,22 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.MapGet("/api/stories", async (IStoryService storyService) =>
+{
+    var stories = await storyService.GetAllStoriesMetadataAsync();
+    return Results.Ok(stories);
+});
+
 app.MapGet("/api/stories/random", async (IStoryService storyService) =>
 {
     var story = await storyService.GetRandomStoryAsync();
     return story is null ? Results.StatusCode(503) : Results.Ok(story);
+});
+
+app.MapGet("/api/stories/{id}", async (string id, IStoryService storyService) =>
+{
+    var story = await storyService.GetStoryAsync(id);
+    return story is null ? Results.NotFound() : Results.Ok(story);
 });
 
 app.MapGet("/api/stories/{id}/metadata", async (string id, IStoryService storyService) =>

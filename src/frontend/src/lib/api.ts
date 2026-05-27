@@ -1,8 +1,20 @@
-import type { Story } from '../types/story';
+import type { Story, StoryMetadata } from '../types/story';
 import type { ChatMessage } from '../types/chat';
 
 export async function fetchRandomStory(): Promise<Story> {
   const res = await fetch('/api/stories/random');
+  if (!res.ok) throw new Error(`Failed to fetch story: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchAllStoryMetadata(): Promise<StoryMetadata[]> {
+  const res = await fetch('/api/stories');
+  if (!res.ok) throw new Error(`Failed to fetch story list: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchStory(id: string): Promise<Story> {
+  const res = await fetch(`/api/stories/${encodeURIComponent(id)}`);
   if (!res.ok) throw new Error(`Failed to fetch story: ${res.status}`);
   return res.json();
 }
