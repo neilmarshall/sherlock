@@ -16,6 +16,7 @@
     <PackageJsonDependenciesTailwindcssVite Condition="$(PackageJsonDependenciesTailwindcssVite) == ''">^4.2.2</PackageJsonDependenciesTailwindcssVite>
     <PackageJsonDependenciesClassVarianceAuthority Condition="$(PackageJsonDependenciesClassVarianceAuthority) == ''">^0.7.1</PackageJsonDependenciesClassVarianceAuthority>
     <PackageJsonDependenciesClsx Condition="$(PackageJsonDependenciesClsx) == ''">^2.1.1</PackageJsonDependenciesClsx>
+    <PackageJsonDependenciesCmdk Condition="$(PackageJsonDependenciesCmdk) == ''">^1.1.1</PackageJsonDependenciesCmdk>
     <PackageJsonDependenciesLucideReact Condition="$(PackageJsonDependenciesLucideReact) == ''">^1.7.0</PackageJsonDependenciesLucideReact>
     <PackageJsonDependenciesRadixUi Condition="$(PackageJsonDependenciesRadixUi) == ''">^1.4.3</PackageJsonDependenciesRadixUi>
     <PackageJsonDependenciesReact Condition="$(PackageJsonDependenciesReact) == ''">^19.2.1</PackageJsonDependenciesReact>
