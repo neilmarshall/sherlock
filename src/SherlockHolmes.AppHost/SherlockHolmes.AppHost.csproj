@@ -6,6 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>87258b38-4780-45ed-ae50-db782b072e2d</UserSecretsId>
+    <!-- ASPIRE010: the project intentionally runs without the Aspire CLI bundle (SDK default). -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);ASPIRE010</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
