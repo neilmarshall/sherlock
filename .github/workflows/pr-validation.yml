@@ -1,0 +1,73 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (.NET)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore src/SherlockHolmes.sln
+
+      - name: Build
+        run: dotnet build src/SherlockHolmes.sln -c Release --no-restore
+
+      - name: Detect test projects
+        id: detect-tests
+        run: |
+          if grep -rlE --include='*.csproj' --include='*.props' 'IsTestProject>true|Microsoft\.NET\.Test\.Sdk' src >/dev/null; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test
+        if: steps.detect-tests.outputs.found == 'true'
+        run: dotnet test src/SherlockHolmes.sln -c Release --no-build
+
+  frontend:
+    name: Frontend (Node)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: src/frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: src/frontend
+        run: npm run lint
+
+      - name: Build
+        working-directory: src/frontend
+        run: npm run build
