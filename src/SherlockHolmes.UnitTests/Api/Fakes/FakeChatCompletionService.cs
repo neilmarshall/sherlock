@@ -2,7 +2,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 
-namespace SherlockHolmes.Tests.Api.Fakes;
+namespace SherlockHolmes.UnitTests.Api.Fakes;
 
 /// <summary>
 /// Records the ChatHistory passed to streaming completion and replays scripted chunks.

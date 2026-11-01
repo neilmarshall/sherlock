@@ -1,4 +1,4 @@
-namespace SherlockHolmes.Tests.Migration;
+namespace SherlockHolmes.UnitTests.Migration;
 
 internal static class RepoPaths
 {

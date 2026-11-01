@@ -11,7 +11,7 @@ Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "frontend", "frontend\fronte
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SherlockHolmes.Migration", "SherlockHolmes.Migration\SherlockHolmes.Migration.csproj", "{DD2A3C24-6D74-41F0-ADBA-C8A2C124BBAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SherlockHolmes.Tests", "SherlockHolmes.Tests\SherlockHolmes.Tests.csproj", "{A1D82085-E743-4A70-92A4-22BD5648AD87}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SherlockHolmes.UnitTests", "SherlockHolmes.UnitTests\SherlockHolmes.UnitTests.csproj", "{A1D82085-E743-4A70-92A4-22BD5648AD87}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

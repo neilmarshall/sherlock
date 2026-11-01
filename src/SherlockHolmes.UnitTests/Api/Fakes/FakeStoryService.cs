@@ -1,7 +1,7 @@
 using SherlockHolmes.Api.Models;
 using SherlockHolmes.Api.Services;
 
-namespace SherlockHolmes.Tests.Api.Fakes;
+namespace SherlockHolmes.UnitTests.Api.Fakes;
 
 /// <summary>Minimal IStoryService that only serves story bodies, for ChatService tests.</summary>
 internal sealed class FakeStoryService : IStoryService

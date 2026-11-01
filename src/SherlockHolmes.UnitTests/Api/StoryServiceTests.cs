@@ -1,9 +1,9 @@
 using System.Reflection;
 using SherlockHolmes.Api.Models;
 using SherlockHolmes.Api.Services;
-using SherlockHolmes.Tests.Api.Fakes;
+using SherlockHolmes.UnitTests.Api.Fakes;
 
-namespace SherlockHolmes.Tests.Api;
+namespace SherlockHolmes.UnitTests.Api;
 
 /// <summary>
 /// StoryService keeps its metadata cache in a static field, so state leaks between instances.

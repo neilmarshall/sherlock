@@ -2,7 +2,7 @@ using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 
-namespace SherlockHolmes.Tests.Api.Fakes;
+namespace SherlockHolmes.UnitTests.Api.Fakes;
 
 /// <summary>
 /// In-memory stand-in for the Azure Blob service with a single container. Missing blobs

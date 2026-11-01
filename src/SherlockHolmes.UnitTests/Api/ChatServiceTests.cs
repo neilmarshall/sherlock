@@ -3,9 +3,9 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using SherlockHolmes.Api.Models;
 using SherlockHolmes.Api.Services;
-using SherlockHolmes.Tests.Api.Fakes;
+using SherlockHolmes.UnitTests.Api.Fakes;
 
-namespace SherlockHolmes.Tests.Api;
+namespace SherlockHolmes.UnitTests.Api;
 
 [TestClass]
 public class ChatServiceTests

@@ -2,7 +2,7 @@ using Azure;
 using Azure.Data.Tables;
 using SherlockHolmes.Api.Models;
 
-namespace SherlockHolmes.Tests.Api.Fakes;
+namespace SherlockHolmes.UnitTests.Api.Fakes;
 
 /// <summary>
 /// In-memory stand-in for the Azure Table service. Only the "stories" table is supported.

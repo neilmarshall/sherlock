@@ -1,6 +1,6 @@
 using SherlockHolmes.Migration;
 
-namespace SherlockHolmes.Tests.Migration;
+namespace SherlockHolmes.UnitTests.Migration;
 
 [TestClass]
 public class StoryParserTests
