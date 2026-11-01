@@ -75,7 +75,8 @@ public class StoryService : IStoryService
                     entity.YearPublished,
                     entity.WordCount));
             }
-            _cachedMetadata = list;
+            // Don't cache an empty result: the table may simply not be seeded yet.
+            if (list.Count > 0) _cachedMetadata = list;
             return list;
         }
         finally

@@ -37,6 +37,9 @@ internal sealed class FakeTableClient : TableClient
         _entities = entities.ToList();
     }
 
+    /// <summary>Adds an entity after construction (simulates the table being seeded later).</summary>
+    public void Add(StoryEntity entity) => _entities.Add(entity);
+
     /// <summary>Number of QueryAsync calls received (used to verify caching).</summary>
     public int QueryCount { get; private set; }
 

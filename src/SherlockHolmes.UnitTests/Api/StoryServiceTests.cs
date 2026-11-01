@@ -89,6 +89,34 @@ public class StoryServiceTests
     }
 
     [TestMethod]
+    public async Task GetAllStoriesMetadataAsync_DoesNotCacheEmptyResult()
+    {
+        var (service, tables, _) = Create();
+
+        var first = await service.GetAllStoriesMetadataAsync();
+        tables.StoriesTable.Add(Bohemia);
+        var second = await service.GetAllStoriesMetadataAsync();
+
+        Assert.AreEqual(0, first.Count);
+        Assert.AreEqual(1, second.Count);
+        Assert.AreEqual(2, tables.StoriesTable.QueryCount);
+    }
+
+    [TestMethod]
+    public async Task GetRandomStoryAsync_RecoversOnceTableIsSeeded()
+    {
+        var (service, tables, _) = Create();
+
+        Assert.IsNull(await service.GetRandomStoryAsync());
+        tables.StoriesTable.Add(Bohemia);
+
+        var story = await service.GetRandomStoryAsync();
+
+        Assert.IsNotNull(story);
+        Assert.AreEqual("A_Scandal_in_Bohemia", story.Id);
+    }
+
+    [TestMethod]
     public async Task GetAllStoriesMetadataAsync_CacheIsSharedAcrossInstances()
     {
         var (first, tables, _) = Create(Bohemia);
