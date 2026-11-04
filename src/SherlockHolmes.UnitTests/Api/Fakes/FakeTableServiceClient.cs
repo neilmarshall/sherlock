@@ -23,7 +23,10 @@ internal sealed class FakeTableServiceClient : TableServiceClient
     public override TableClient GetTableClient(string tableName)
     {
         if (tableName != "stories")
+        {
             throw new InvalidOperationException($"Unexpected table '{tableName}'.");
+        }
+
         return _storiesTable;
     }
 }
@@ -61,7 +64,9 @@ internal sealed class FakeTableClient : TableClient
             ?? throw new RequestFailedException(404, "Entity not found.", "ResourceNotFound", null);
 
         if (entity is not T typed)
+        {
             throw new NotSupportedException($"FakeTableClient only supports {typeof(StoryEntity).Name}.");
+        }
 
         return Task.FromResult(Response.FromValue(typed, null!));
     }

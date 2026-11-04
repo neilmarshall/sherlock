@@ -53,7 +53,9 @@ internal sealed class FakeBlobClient : BlobClient
     public override Task<Response<BlobDownloadResult>> DownloadContentAsync(CancellationToken cancellationToken = default)
     {
         if (!_blobs.TryGetValue(_blobName, out var text))
+        {
             throw new RequestFailedException(404, "The specified blob does not exist.", "BlobNotFound", null);
+        }
 
         var result = BlobsModelFactory.BlobDownloadResult(content: BinaryData.FromString(text));
         return Task.FromResult(Response.FromValue(result, null!));

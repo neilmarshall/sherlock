@@ -35,9 +35,13 @@ public class ChatService : IChatService
         foreach (var turn in history)
         {
             if (string.Equals(turn.Role, "assistant", StringComparison.OrdinalIgnoreCase))
+            {
                 chatHistory.AddAssistantMessage(turn.Content);
+            }
             else if (string.Equals(turn.Role, "user", StringComparison.OrdinalIgnoreCase))
+            {
                 chatHistory.AddUserMessage(turn.Content);
+            }
         }
 
         chatHistory.AddUserMessage(userMessage);
@@ -77,10 +81,16 @@ public class ChatService : IChatService
                         ex);
                 }
 
-                if (!hasNext) break;
+                if (!hasNext)
+                {
+                    break;
+                }
+
                 var chunk = enumerator.Current;
                 if (!string.IsNullOrEmpty(chunk.Content))
+                {
                     yield return chunk.Content;
+                }
             }
         }
         finally

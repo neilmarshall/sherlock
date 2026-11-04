@@ -21,7 +21,10 @@ public class StoryService : IStoryService
     public async Task<StoryResponse?> GetRandomStoryAsync()
     {
         var metadata = await GetAllStoriesMetadataAsync();
-        if (metadata.Count == 0) return null;
+        if (metadata.Count == 0)
+        {
+            return null;
+        }
 
         var randomId = metadata[Random.Shared.Next(metadata.Count)].Id;
         return await GetStoryAsync(randomId);
@@ -55,12 +58,18 @@ public class StoryService : IStoryService
 
     public async Task<IReadOnlyList<StoryMetadataResponse>> GetAllStoriesMetadataAsync()
     {
-        if (_cachedMetadata is not null) return _cachedMetadata;
+        if (_cachedMetadata is not null)
+        {
+            return _cachedMetadata;
+        }
 
         await _lock.WaitAsync();
         try
         {
-            if (_cachedMetadata is not null) return _cachedMetadata;
+            if (_cachedMetadata is not null)
+            {
+                return _cachedMetadata;
+            }
 
             var tableClient = _tableServiceClient.GetTableClient("stories");
             var list = new List<StoryMetadataResponse>();
@@ -76,7 +85,11 @@ public class StoryService : IStoryService
                     entity.WordCount));
             }
             // Don't cache an empty result: the table may simply not be seeded yet.
-            if (list.Count > 0) _cachedMetadata = list;
+            if (list.Count > 0)
+            {
+                _cachedMetadata = list;
+            }
+
             return list;
         }
         finally

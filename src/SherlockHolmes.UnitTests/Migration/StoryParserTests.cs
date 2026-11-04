@@ -20,7 +20,9 @@ public class StoryParserTests
     public void TearDown()
     {
         if (Directory.Exists(_tempDir))
+        {
             Directory.Delete(_tempDir, recursive: true);
+        }
     }
 
     private string WriteFile(string content)
@@ -132,7 +134,9 @@ public class StoryParserTests
     {
         var dir = RepoPaths.FindStoriesDirectory();
         if (dir is null)
+        {
             Assert.Inconclusive("data/stories not found above the test binary folder.");
+        }
 
         var story = StoryParser.Parse(Path.Combine(dir, "A_Scandal_in_Bohemia.txt"));
 
@@ -149,7 +153,9 @@ public class StoryParserTests
     {
         var dir = RepoPaths.FindStoriesDirectory();
         if (dir is null)
+        {
             Assert.Inconclusive("data/stories not found above the test binary folder.");
+        }
 
         var files = Directory.GetFiles(dir, "*.txt");
         Assert.HasCount(56, files);
