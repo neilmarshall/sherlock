@@ -46,7 +46,11 @@ public static class StoryEndpoints
     {
         static async Task WriteErrorAsync(HttpResponse response, int statusCode, string message)
         {
-            if (response.HasStarted) return;
+            if (response.HasStarted)
+            {
+                return;
+            }
+
             response.StatusCode = statusCode;
             response.ContentType = "text/plain; charset=utf-8";
             await response.WriteAsync(message);

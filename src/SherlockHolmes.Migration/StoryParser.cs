@@ -12,7 +12,9 @@ public static class StoryParser
 
         var separatorIndex = content.IndexOf(Separator, StringComparison.Ordinal);
         if (separatorIndex < 0)
+        {
             throw new InvalidOperationException($"No separator found in {filePath}");
+        }
 
         var header = content[..separatorIndex];
         var body = content[(separatorIndex + Separator.Length)..].Trim();

@@ -13,7 +13,10 @@ internal static class RepoPaths
         {
             var candidate = Path.Combine(dir.FullName, "data", "stories");
             if (Directory.Exists(candidate))
+            {
                 return candidate;
+            }
+
             dir = dir.Parent;
         }
         return null;

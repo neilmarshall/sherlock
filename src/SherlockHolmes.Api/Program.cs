@@ -35,7 +35,7 @@ if (builder.Configuration.GetValue<bool>("UseLocalLlm"))
     // Dedicated HttpClient for the local LLM: streaming a reply from an 8B model on CPU
     // can run minutes long, so we replace the standard 10s/30s resilience defaults with
     // a stupidly long 5-minute per-attempt budget.
-    #pragma warning disable EXTEXP0001 // RemoveAllResilienceHandlers is experimental
+#pragma warning disable EXTEXP0001 // RemoveAllResilienceHandlers is experimental
     builder.Services.AddHttpClient("local-llm")
         .RemoveAllResilienceHandlers()
         .AddStandardResilienceHandler(options =>
@@ -44,9 +44,9 @@ if (builder.Configuration.GetValue<bool>("UseLocalLlm"))
             options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(12);
             options.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(20);
         });
-    #pragma warning restore EXTEXP0001
+#pragma warning restore EXTEXP0001
 
-    #pragma warning disable SKEXP0010 // OpenAIChatCompletionService(string, Uri, ...) is experimental
+#pragma warning disable SKEXP0010 // OpenAIChatCompletionService(string, Uri, ...) is experimental
     builder.Services.AddSingleton<IChatCompletionService>(sp =>
     {
         var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient("local-llm");
@@ -57,7 +57,7 @@ if (builder.Configuration.GetValue<bool>("UseLocalLlm"))
             httpClient: httpClient,
             loggerFactory: sp.GetService<ILoggerFactory>());
     });
-    #pragma warning restore SKEXP0010
+#pragma warning restore SKEXP0010
 }
 else
 {
@@ -71,7 +71,7 @@ else
 
     // Dedicated HttpClient for Azure OpenAI: streaming completions can run longer than the
     // default 10s/30s standard resilience timeouts, so we opt out and apply 30s/90s instead.
-    #pragma warning disable EXTEXP0001 // RemoveAllResilienceHandlers is experimental
+#pragma warning disable EXTEXP0001 // RemoveAllResilienceHandlers is experimental
     builder.Services.AddHttpClient("azure-openai")
         .RemoveAllResilienceHandlers()
         .AddStandardResilienceHandler(options =>
@@ -80,7 +80,7 @@ else
             options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(90);
             options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(90);
         });
-    #pragma warning restore EXTEXP0001
+#pragma warning restore EXTEXP0001
 
     builder.Services.AddSingleton(sp =>
     {

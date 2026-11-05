@@ -28,7 +28,10 @@ public class ChatServiceTests
     {
         var chunks = new List<string>();
         await foreach (var chunk in stream)
+        {
             chunks.Add(chunk);
+        }
+
         return chunks;
     }
 

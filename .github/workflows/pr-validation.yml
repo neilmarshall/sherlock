@@ -29,6 +29,9 @@ jobs:
       - name: Restore
         run: dotnet restore src/SherlockHolmes.sln
 
+      - name: Check formatting
+        run: dotnet format src/SherlockHolmes.sln --verify-no-changes --no-restore
+
       - name: Build
         run: dotnet build src/SherlockHolmes.sln -c Release --no-restore
 
